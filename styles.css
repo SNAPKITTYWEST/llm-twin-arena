@@ -213,6 +213,92 @@ h2 {
   padding: 16px;
 }
 
+.ollama-box {
+  display: grid;
+  gap: 16px;
+}
+
+.box-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.runtime-pill {
+  border: 1px solid var(--orange);
+  border-radius: 999px;
+  color: var(--orange);
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.runtime-pill[data-state="online"] {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.runtime-pill[data-state="complete"] {
+  border-color: var(--purple);
+  color: var(--purple);
+}
+
+.runtime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #07080c;
+  color: var(--text);
+  font: inherit;
+  padding: 12px;
+}
+
+textarea {
+  min-height: 138px;
+  resize: vertical;
+}
+
+.challenge-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mini-button {
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+
+.live-output {
+  min-height: 240px;
+}
+
+.seal-line {
+  color: var(--muted);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .ticker {
   position: fixed;
   left: 0;
@@ -227,6 +313,33 @@ h2 {
   color: var(--green);
   font-size: 0.84rem;
   z-index: 10;
+  gap: 14px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.ticker span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ticker.pulse {
+  animation: wormPulse 360ms ease-out;
+}
+
+@keyframes wormPulse {
+  0% {
+    box-shadow: 0 -1px 0 var(--green), 0 0 0 rgba(0, 255, 136, 0);
+  }
+
+  50% {
+    box-shadow: 0 -1px 0 var(--green), 0 0 24px rgba(0, 255, 136, 0.35);
+  }
+
+  100% {
+    box-shadow: 0 -1px 0 var(--green), 0 0 0 rgba(0, 255, 136, 0);
+  }
 }
 
 @media (max-width: 720px) {
@@ -242,4 +355,3 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
-

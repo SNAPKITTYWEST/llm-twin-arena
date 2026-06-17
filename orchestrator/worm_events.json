@@ -120,5 +120,17 @@
     "model": "nemotron",
     "modelMap": "nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF",
     "seal": "26ce7d8a04fb28ec161897b0011f5523d3936968526f960b9a9d09fe82e50af2"
+  },
+  {
+    "tick": 12,
+    "tickLabel": "T[12]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "TRUST INJECTION - live Ollama browser streaming, Shadow Orchestrator creator, and last-five WORM ticker",
+    "artifactHash": "99dcc5e5fb45f5e0a84a7b289b9a3008c30953da8d1c61f96e3ac88e08cf98f5",
+    "parentSeal": "26ce7d8a04fb28ec161897b0011f5523d3936968526f960b9a9d09fe82e50af2",
+    "proof": "ollama_streaming_shadow_orchestrator_and_live_worm_ticker_verified",
+    "verifiedBrowserRun": "nemotron streamed through browser and sealed response",
+    "verifiedShadowRun": "shadow orchestrator completed and exported manifest enabled",
+    "seal": "5e3dc9d6e64c5cec2709196436053ddd723fd587996609eb571820907af2ee52"
   }
 ]

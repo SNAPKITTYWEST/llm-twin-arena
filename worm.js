@@ -35,15 +35,20 @@
     events.push(event)
     saveEvents(events)
     render(events)
+    window.dispatchEvent(new CustomEvent('worm:event', { detail: event }))
     return event
   }
 
   function render(events = loadEvents()) {
     const last = events.at(-1)
-    const text = last
-      ? `WORM_TICK ${last.tick} | ${last.timestamp} | seal ${last.seal.slice(0, 20)}...`
-      : 'WORM_TICK 0 | awaiting genesis seal'
-    if (ticker) ticker.textContent = text
+    if (ticker) {
+      const rows = events.slice(-5).map((event) => {
+        return `<span><b>${event.tick}</b> ${event.type} ${event.seal.slice(0, 12)}...</span>`
+      }).join('')
+      ticker.innerHTML = rows || '<span>WORM_TICK 0 | awaiting genesis seal</span>'
+      ticker.classList.remove('pulse')
+      requestAnimationFrame(() => ticker.classList.add('pulse'))
+    }
     if (log) log.textContent = JSON.stringify(events.slice(-12), null, 2)
   }
 
@@ -61,6 +66,7 @@
     appendEvent,
     exportEvents,
     loadEvents,
+    render,
     sha256
   }
 
@@ -74,4 +80,3 @@
     })
   }, 5000)
 })()
-

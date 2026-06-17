@@ -16,9 +16,13 @@
 12. Swift twin mode lives in `twins/NN-name/swift/`.
 13. Swift handles architecture visualization and transformer challenge building locally.
 14. JavaScript WORM remains the browser seal authority; Swift feeds it results.
+15. Browser twin pages may call local Ollama directly through loopback.
+16. Browser LLM output must be sealed into JS WORM.
 
 ## Runtime Boundary
 
 GitHub Pages shows the arena as static files. Ollama runs locally at `http://localhost:11434`. The Python orchestrator runs locally and writes WORM events for browser/manual inspection.
 
 Swift mode is a local compute lane beside each HTML twin page. It emits structured architecture and challenge JSON, then the browser WORM chain seals the handoff.
+
+Ollama In A Box is the browser-local run lane. It calls the user's local Ollama loopback endpoint and seals prompts/results into JS WORM. GitHub Pages does not host a model or external backend.

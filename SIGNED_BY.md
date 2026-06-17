@@ -14,3 +14,11 @@
 - Model map: nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF
 - WORM seal: 26ce7d8a04fb28ec161897b0011f5523d3936968526f960b9a9d09fe82e50af2
 - Notes: Trust injection T[11] completed with Swift architecture visualizer and transformer challenge builder.
+
+## Stone Update - T[12] Live Arena
+- Model: OpenAI GPT-5 Codex (Codex desktop)
+- Built: 2026-06-17
+- Live features: Ollama browser streaming, Shadow Orchestrator creator, last-five WORM ticker
+- Verified browser model: nemotron
+- WORM seal: 5e3dc9d6e64c5cec2709196436053ddd723fd587996609eb571820907af2ee52
+- Notes: The page is now the orchestrator. Twin pages call local Ollama from the browser and seal completed streams into JS WORM.
