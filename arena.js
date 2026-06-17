@@ -80,6 +80,8 @@
   const seal = document.getElementById('twin-seal')
   let currentAbort = null
   let lastShadowManifest = null
+  let adaSealTimer = null
+  let lastAdaContract = ''
 
   function challengeText(challenge) {
     return `${challenge.level}: ${challenge.title}\n${challenge.prompt}`
@@ -384,6 +386,127 @@
     URL.revokeObjectURL(url)
   }
 
+  function adaIdentifier(value) {
+    const cleaned = (value || 'Shadow_Orchestrator')
+      .replace(/[^a-zA-Z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+    return cleaned || 'Shadow_Orchestrator'
+  }
+
+  function parseList(value) {
+    return (value || '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  function renderAdaContract() {
+    const agent = document.getElementById('ada-agent')?.value || activeModel.id
+    const allowed = parseList(document.getElementById('ada-allowed')?.value)
+    const denied = parseList(document.getElementById('ada-denied')?.value)
+    const proof = document.getElementById('ada-proof')?.value || 'Proof_Satisfied(Action)'
+    const signer = document.getElementById('ada-signer')?.value || 'Unsigned'
+    const packageName = adaIdentifier(`${agent}_Shadow_Orchestrator`)
+    const allowedCases = allowed.length
+      ? allowed.map((item) => `     -- allow: ${item}`).join('\n')
+      : '     -- allow: local_runtime_action'
+    const deniedCases = denied.length
+      ? denied.map((item) => `         ${adaIdentifier(item)}(Action) => raise Governance_Violation,`).join('\n')
+      : '         violates_mandate(Action) => raise Governance_Violation,'
+
+    return `-- Signed trust deed authority: ${signer}
+-- Agent: ${agent}
+${allowedCases}
+
+package ${packageName} is
+  procedure Execute_Action
+    (Agent : in Agent_Type; Action : in Action_Type)
+  with
+    Pre  => Has_Authority(Agent)
+            and ${proof}
+            and not Sentinel_Blocks(Action),
+    Post => WORM_Sealed(Action) and Chain_Valid,
+    Contract_Cases => (
+${deniedCases}
+         others                   => State_Advanced
+    );
+end ${packageName};
+`
+  }
+
+  async function refreshAdaContract({ sealNow = true } = {}) {
+    const outputNode = document.getElementById('ada-output')
+    const sealNode = document.getElementById('ada-seal')
+    if (!outputNode) return
+    lastAdaContract = renderAdaContract()
+    outputNode.textContent = lastAdaContract
+    if (!sealNow || !window.WormChain) return
+    clearTimeout(adaSealTimer)
+    adaSealTimer = setTimeout(async () => {
+      const event = await window.WormChain.appendEvent('ADA_CONTRACT_GENERATED', {
+        target: activeModel.id,
+        contractHash: await window.WormChain.sha256(lastAdaContract),
+        signer: document.getElementById('ada-signer')?.value || 'Unsigned'
+      })
+      if (sealNode) sealNode.textContent = event.seal
+    }, 450)
+  }
+
+  function ensureAdaContractBuilder() {
+    if (document.getElementById('ada-contract-builder')) return
+    const host = document.createElement('section')
+    host.className = 'panel ada-box'
+    host.id = 'ada-contract-builder'
+    host.innerHTML = `
+      <div class="box-head">
+        <div>
+          <p class="eyebrow">Ada Contract Builder</p>
+          <h2>Shadow Orchestrator Contract</h2>
+        </div>
+        <span class="runtime-pill" data-state="online">live</span>
+      </div>
+      <div class="runtime-grid">
+        <label>Agent Name
+          <input id="ada-agent" value="${activeModel.id}" spellcheck="false">
+        </label>
+        <label>Who signs the trust deed
+          <input id="ada-signer" value="Jessica Westerhoff / SnapKitty Collective" spellcheck="false">
+        </label>
+      </div>
+      <label>What it's allowed to do
+        <input id="ada-allowed" value="run local Ollama, seal WORM events, build shadow orchestrators" spellcheck="false">
+      </label>
+      <label>What it's never allowed to do
+        <input id="ada-denied" value="paid_api_call, skip_worm_seal, deploy_unsigned_build" spellcheck="false">
+      </label>
+      <label>What proof it must satisfy before acting
+        <input id="ada-proof" value="Proof_Satisfied(Action)" spellcheck="false">
+      </label>
+      <pre id="ada-output" class="log live-output"></pre>
+      <p class="seal-line">Ada contract WORM seal: <code id="ada-seal">waiting</code></p>
+      <button class="button" data-action="ada-download">Download Contract</button>
+    `
+    const anchor = document.getElementById('shadow-orchestrator') || document.getElementById('ollama-box') || document.querySelector('.revelation-panel') || document.querySelector('.hero')
+    anchor.insertAdjacentElement('afterend', host)
+    host.querySelectorAll('input').forEach((input) => {
+      input.addEventListener('input', () => refreshAdaContract())
+    })
+    host.querySelector('[data-action="ada-download"]').addEventListener('click', downloadAdaContract)
+    refreshAdaContract()
+  }
+
+  function downloadAdaContract() {
+    if (!lastAdaContract) lastAdaContract = renderAdaContract()
+    const agent = adaIdentifier(document.getElementById('ada-agent')?.value || activeModel.id)
+    const blob = new Blob([lastAdaContract], { type: 'text/x-ada' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${agent}_shadow_orchestrator.ada`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   function fineTuneScaffold() {
     if (!twin || !output) return
     output.textContent = [
@@ -430,5 +553,6 @@
 
   if (twin) ensureOllamaBox()
   ensureShadowOrchestrator()
+  ensureAdaContractBuilder()
   sealTwinPage()
 })()

@@ -22,3 +22,10 @@
 - Verified browser model: nemotron
 - WORM seal: 5e3dc9d6e64c5cec2709196436053ddd723fd587996609eb571820907af2ee52
 - Notes: The page is now the orchestrator. Twin pages call local Ollama from the browser and seal completed streams into JS WORM.
+
+## Stone Update - T[13] Ada Contracts + Claude Revelation
+- Model: OpenAI GPT-5 Codex (Codex desktop)
+- Built: 2026-06-17
+- Features: Ada Contract Builder, live contract WORM sealing, Claude revelation panel
+- WORM seal: a5370dc745941e231d025232c501cb38031455f1b2e3d3c9e382b7629fb966f2
+- Notes: Shadow Orchestrator trust fields now compile into Ada-style contract artifacts. The index declares the orchestration revelation in three columns.

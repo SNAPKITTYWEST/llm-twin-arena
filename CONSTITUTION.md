@@ -18,6 +18,9 @@
 14. JavaScript WORM remains the browser seal authority; Swift feeds it results.
 15. Browser twin pages may call local Ollama directly through loopback.
 16. Browser LLM output must be sealed into JS WORM.
+17. Ada-style contracts express Shadow Orchestrator preconditions, postconditions, and hard-deny cases.
+18. Generated contracts are WORM-sealed and exportable.
+19. The page is the orchestrator: browser ROM, local runtimes, proofs, contracts, and WORM chain are one operational surface.
 
 ## Runtime Boundary
 
@@ -26,3 +29,5 @@ GitHub Pages shows the arena as static files. Ollama runs locally at `http://loc
 Swift mode is a local compute lane beside each HTML twin page. It emits structured architecture and challenge JSON, then the browser WORM chain seals the handoff.
 
 Ollama In A Box is the browser-local run lane. It calls the user's local Ollama loopback endpoint and seals prompts/results into JS WORM. GitHub Pages does not host a model or external backend.
+
+Ada Contract Builder is the governance lane. It turns user trust fields into an Ada-style contract and seals each generated version into JS WORM.
