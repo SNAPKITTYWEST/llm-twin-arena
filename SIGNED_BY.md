@@ -5,3 +5,12 @@
 - Swift modes built: mistral, llama, phi
 - WORM seal: 8343a4bebbfa33cdd5688dfc825fab292b3cd8cedadd1ce04577547ffd6eef49
 - Notes: SnapKitty Inverted NoShow Turbo3X build completed. Trust injection T[10] added Swift deep compute lanes beside each twin page.
+
+## Stone Update - T[11] Nemotron Twin
+- Model: OpenAI GPT-5 Codex (Codex desktop)
+- Built: 2026-06-17
+- Twin added: nemotron
+- Ollama tag: nemotron
+- Model map: nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF
+- WORM seal: 26ce7d8a04fb28ec161897b0011f5523d3936968526f960b9a9d09fe82e50af2
+- Notes: Trust injection T[11] completed with Swift architecture visualizer and transformer challenge builder.

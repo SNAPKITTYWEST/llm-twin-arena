@@ -108,5 +108,17 @@
     "parentSeal": "81f2fb028332d987a4a24837545bd7124e5edb38781bb2c16c4b22a47f8ef2d4",
     "proof": "swift_mode_beside_twin_page_and_js_worm_authority_satisfied",
     "seal": "8343a4bebbfa33cdd5688dfc825fab292b3cd8cedadd1ce04577547ffd6eef49"
+  },
+  {
+    "tick": 11,
+    "tickLabel": "T[11]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "TRUST INJECTION - Nemotron-Mini-4B twin registered with HTML page, TypeScript twin, Swift mode, and arena card",
+    "artifactHash": "02bb6bba6e336ebdc7a877a9582e4a026e4182ccb37117f1479ef8b44bed87c7",
+    "parentSeal": "8343a4bebbfa33cdd5688dfc825fab292b3cd8cedadd1ce04577547ffd6eef49",
+    "proof": "nemotron_twin_registered_and_js_worm_authority_satisfied",
+    "model": "nemotron",
+    "modelMap": "nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF",
+    "seal": "26ce7d8a04fb28ec161897b0011f5523d3936968526f960b9a9d09fe82e50af2"
   }
 ]

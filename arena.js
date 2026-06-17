@@ -29,6 +29,23 @@
       ollamaTag: 'phi3:mini',
       contextWindow: '4k tokens',
       challenges: ['atom: Small Proof', 'molecule: Memory Fit', 'compound: Offline Judge']
+    },
+    nemotron: {
+      id: 'nemotron',
+      twinPath: 'twins/04-nemotron',
+      modelName: 'Nemotron-Mini-4B',
+      modelFamily: 'NVIDIA Nemotron',
+      parameterCount: '4B',
+      ollamaTag: 'nemotron',
+      contextWindow: 'local Ollama runtime dependent',
+      modelMap: 'nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF',
+      architecture: {
+        layers: 32,
+        heads: 32,
+        hiddenDimension: 2048,
+        attention: 'GQA'
+      },
+      challenges: ['atom: Attention Mechanism', 'molecule: Tokenizer', 'compound: Embedding Layer']
     }
   }
 
