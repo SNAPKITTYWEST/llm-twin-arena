@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LLM Twin Arena</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="arena">
+    <main class="shell">
+      <nav class="topline">
+        <a href="page-00-worm.html">Page 00 WORM</a>
+        <a href="CONSTITUTION.md">Constitution</a>
+        <a href="SIGNED_BY.md">Signed Stone</a>
+      </nav>
+      <section class="hero lobby-hero">
+        <p class="eyebrow">SnapKitty Inverted NoShow Turbo3X</p>
+        <h1>LLM Twin Arena</h1>
+        <p class="subtitle">Every model gets a twin. Every twin gets a page.</p>
+      </section>
+      <section class="grid twin-grid">
+        <article class="card twin-card" data-twin-card="mistral">
+          <p class="eyebrow">Twin 01</p>
+          <h2>Mistral 7B</h2>
+          <p>Fast local reasoning twin with grouped-query attention, Swift visualizer mode, and 32 transformer blocks.</p>
+          <div class="mini-arch"><span>Tok</span><span>Embed</span><span>GQA</span><span>Head</span></div>
+          <a class="button" href="twins/01-mistral/index.html">Start Challenge</a>
+        </article>
+        <article class="card twin-card" data-twin-card="llama">
+          <p class="eyebrow">Twin 02</p>
+          <h2>Llama 3.2</h2>
+          <p>Long-context local runtime twin for Swift challenge building, trimming, and evidence retention.</p>
+          <div class="mini-arch"><span>BPE</span><span>RoPE</span><span>GQA</span><span>Head</span></div>
+          <a class="button" href="twins/02-llama/index.html">Start Challenge</a>
+        </article>
+        <article class="card twin-card" data-twin-card="phi">
+          <p class="eyebrow">Twin 03</p>
+          <h2>Phi-3 Mini</h2>
+          <p>Compact offline twin for Swift-built small proofs, local judging, and sealed challenge loops.</p>
+          <div class="mini-arch"><span>Tok</span><span>Embed</span><span>MHA</span><span>Head</span></div>
+          <a class="button" href="twins/03-phi/index.html">Start Challenge</a>
+        </article>
+      </section>
+      <section class="panel">
+        <h2>Runtime Boundary</h2>
+        <p>GitHub Pages serves this arena. Ollama execution happens locally through <code>orchestrator/main.py</code>. Fine-tuning output is a free-tier scaffold only.</p>
+      </section>
+    </main>
+    <div id="worm-ticker" class="ticker">WORM loading...</div>
+    <script src="worm.js"></script>
+    <script src="arena.js"></script>
+  </body>
+</html>

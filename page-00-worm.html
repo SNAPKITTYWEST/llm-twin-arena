@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page 00 WORM Chain</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="worm">
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">PAGE 00</p>
+        <h1>PAGE 00 WORM CHAIN</h1>
+        <p class="subtitle">Loads before any twin activates.</p>
+        <div class="actions">
+          <a class="button" href="index.html">Arena Lobby</a>
+          <button class="button" id="export-worm">Export WORM JSON</button>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Local-First Chain</h2>
+        <p>Browser ticks are sealed with SHA-256 and stored in localStorage. Python events can be inspected in <code>orchestrator/worm_events.json</code>.</p>
+        <pre id="worm-log" class="log"></pre>
+      </section>
+    </main>
+    <div id="worm-ticker" class="ticker">WORM loading...</div>
+    <script src="worm.js"></script>
+  </body>
+</html>
+

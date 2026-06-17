@@ -1,0 +1,112 @@
+[
+  {
+    "tick": 0,
+    "tickLabel": "T[0]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "READ mandate - sigma_0 seeded",
+    "artifactHash": "43eeb88a4680a1cfc232f01ac3c6317aa426e4658c13bc063c05f286eb3d8731",
+    "parentSeal": "GENESIS",
+    "proof": "satisfied",
+    "seal": "24e7bda428fe162bc28f3e34bc194c3ab9bbf9f47abd0138e96367f56f1bb746"
+  },
+  {
+    "tick": 1,
+    "tickLabel": "T[1]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "abstract/interfaces written",
+    "artifactHash": "e8e607fff6b67b9813797ecf3c09b91ff4b6b586803458b3b50d28769645ed68",
+    "parentSeal": "24e7bda428fe162bc28f3e34bc194c3ab9bbf9f47abd0138e96367f56f1bb746",
+    "proof": "satisfied",
+    "seal": "8215b439be51dd8f533369cb70a3cf228f461a2ef58a676d9e40205939d16428"
+  },
+  {
+    "tick": 2,
+    "tickLabel": "T[2]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "PAGE 00 WORM written",
+    "artifactHash": "f7bf88f292304b04969fc17d4763de0914f0f7df469dba24c0530be991954ef4",
+    "parentSeal": "8215b439be51dd8f533369cb70a3cf228f461a2ef58a676d9e40205939d16428",
+    "proof": "satisfied",
+    "seal": "282391d0ade92673d513b1564f568bf7e5dff773293592f754254d1257c6b56b"
+  },
+  {
+    "tick": 3,
+    "tickLabel": "T[3]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "mistral twin registered",
+    "artifactHash": "acb1141e97a3acea7bff0e2e754934dad3fab36663a903276d14a1135cb724c4",
+    "parentSeal": "282391d0ade92673d513b1564f568bf7e5dff773293592f754254d1257c6b56b",
+    "proof": "satisfied",
+    "seal": "222dde31d01fe68b73f39216ad525a8eecfd026165265d669ca760010d6df11f"
+  },
+  {
+    "tick": 4,
+    "tickLabel": "T[4]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "llama twin registered",
+    "artifactHash": "6143c417ab2764251e8adc8f6ca5ba69bdd5d4412c4ca79b208927d4e7f6faa8",
+    "parentSeal": "222dde31d01fe68b73f39216ad525a8eecfd026165265d669ca760010d6df11f",
+    "proof": "satisfied",
+    "seal": "08386ba4f7bc120bb79a1f3db12e432d2c31c327ab126f090e59e59391fb1fbd"
+  },
+  {
+    "tick": 5,
+    "tickLabel": "T[5]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "phi twin registered",
+    "artifactHash": "b40a444b6a6ec55a84d123dff0439146c6163e09b44ed0567592f3c2c78073db",
+    "parentSeal": "08386ba4f7bc120bb79a1f3db12e432d2c31c327ab126f090e59e59391fb1fbd",
+    "proof": "satisfied",
+    "seal": "5e5fd63aadc0dbd0f5dd6447a03e8a752c63e6e3c5ccb01a1d625879684c3148"
+  },
+  {
+    "tick": 6,
+    "tickLabel": "T[6]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "python orchestrator writes chain",
+    "artifactHash": "bcd8caf803802b272cedef1d0acb5ce15a0fe97ffdb62da702275f452dcc8ee5",
+    "parentSeal": "5e5fd63aadc0dbd0f5dd6447a03e8a752c63e6e3c5ccb01a1d625879684c3148",
+    "proof": "satisfied",
+    "seal": "4b3b44ba5d48cf11bd10ce04cfc1d0b85c179e2b4b27da962779bb77a0cb2c8e"
+  },
+  {
+    "tick": 7,
+    "tickLabel": "T[7]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "arena lobby and GitHub Pages workflow written",
+    "artifactHash": "85a8f51fc0e9606b40d7b34277aed94eaacfed498fb6471822239ad3bad866fa",
+    "parentSeal": "4b3b44ba5d48cf11bd10ce04cfc1d0b85c179e2b4b27da962779bb77a0cb2c8e",
+    "proof": "satisfied",
+    "seal": "8ec1a4150e339f5da7ff375b355e881990dca9802258e1e4a355097e3b05b2af"
+  },
+  {
+    "tick": 8,
+    "tickLabel": "T[8]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "stone signed before deploy",
+    "artifactHash": "1b069a26e274eccf19d4f309dbdfdc4f261de68516971d646b4c7b3815b0365f",
+    "parentSeal": "8ec1a4150e339f5da7ff375b355e881990dca9802258e1e4a355097e3b05b2af",
+    "proof": "satisfied",
+    "seal": "fda5258ff28119278b5d855add0518cbed067755e5a746c6024686f8cffccac0"
+  },
+  {
+    "tick": 9,
+    "tickLabel": "T[9]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "worm_chain_valid_at(8) holds; deploy gate prepared",
+    "artifactHash": "824fc376fc62e2bfc04ea259dc11a8fc50ea7a5e6d2f58f7facad5bc30c75dcb",
+    "parentSeal": "fda5258ff28119278b5d855add0518cbed067755e5a746c6024686f8cffccac0",
+    "proof": "prepared_no_remote_push_performed",
+    "seal": "81f2fb028332d987a4a24837545bd7124e5edb38781bb2c16c4b22a47f8ef2d4"
+  },
+  {
+    "tick": 10,
+    "tickLabel": "T[10]",
+    "timestamp": "2026-06-17T00:00:00Z",
+    "action": "TRUST INJECTION - Swift twin modes added beside every HTML page; Swift feeds JS WORM results",
+    "artifactHash": "41aee169fe413a52cf8d96d32354744b9800c188ee4f672b668be63e02711e37",
+    "parentSeal": "81f2fb028332d987a4a24837545bd7124e5edb38781bb2c16c4b22a47f8ef2d4",
+    "proof": "swift_mode_beside_twin_page_and_js_worm_authority_satisfied",
+    "seal": "8343a4bebbfa33cdd5688dfc825fab292b3cd8cedadd1ce04577547ffd6eef49"
+  }
+]

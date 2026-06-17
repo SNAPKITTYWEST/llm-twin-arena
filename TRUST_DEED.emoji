@@ -1,0 +1,18 @@
+🧠 LAW: abstract = interface_only
+⚡ LAW: twin = one_page
+🪨 LAW: page_00_worm = first
+🔗 LAW: github_pages = ROM
+🎯 LAW: ollama = local_runtime
+🧬 LAW: swift = local_deep_compute
+🔗 LAW: swift_results = js_worm_sealed
+
+🚫 DENY: paid_api
+🚫 DENY: twin_imports_twin
+🚫 DENY: implementation_inside_abstract
+
+✅ ALLOW: sealed_twin_page
+✅ ALLOW: worm_event
+✅ ALLOW: local_challenge
+✅ ALLOW: swift_result_handoff
+
+🧠⚡🪨🔗🎯 = BUILD_PERSONALITY
