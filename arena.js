@@ -130,6 +130,10 @@
   const ALL_CAPS = ['run_local_ollama','seal_worm_events','build_contracts','generate_code','judge_challenges','export_json','swift_compute','fine_tune','reject_violations']
   const ALL_BLOCKED = ['paid_api_call','skip_worm_seal','deploy_unsigned_build','external_domain_call','bypass_worm']
 
+  let wizardCurrentStep = 0
+  let twinConfig = { name: '', modelTag: 'nemotron', modelName: 'Nemotron-Mini-4B', avatarDataUrl: null, personality: '', endpoint: 'http://127.0.0.1:11434' }
+  let ttsEnabled = true
+
   function challengeText(challenge) {
     return `${challenge.level}: ${challenge.title}\n${challenge.prompt}`
   }
@@ -606,6 +610,7 @@ end ${packageName};
   ensureWormViewer()
   sealTwinPage()
   window.addEventListener('worm:event', onWormEvent)
+  initTwinBuilder()
 
   // ── GAME LAYER ──────────────────────────────────────────────
 
@@ -705,6 +710,10 @@ end ${packageName};
             <span class="battle-name" id="battle-name-1">Fighter 1</span>
             <span class="battle-tps" id="battle-tps-1">— t/s</span>
           </div>
+          <details style="margin-bottom:6px">
+            <summary style="color:var(--muted);font-size:0.75rem;cursor:pointer;padding:4px 0">Reasoning</summary>
+            <div class="log" id="battle-reason-1" style="max-height:120px;font-size:0.74rem;color:var(--purple);margin-top:6px"></div>
+          </details>
           <div class="log battle-output live-output" id="battle-out-1" aria-live="polite"></div>
         </div>
         <div class="battle-stream">
@@ -712,6 +721,10 @@ end ${packageName};
             <span class="battle-name" id="battle-name-2">Fighter 2</span>
             <span class="battle-tps" id="battle-tps-2">— t/s</span>
           </div>
+          <details style="margin-bottom:6px">
+            <summary style="color:var(--muted);font-size:0.75rem;cursor:pointer;padding:4px 0">Reasoning</summary>
+            <div class="log" id="battle-reason-2" style="max-height:120px;font-size:0.74rem;color:var(--purple);margin-top:6px"></div>
+          </details>
           <div class="log battle-output live-output" id="battle-out-2" aria-live="polite"></div>
         </div>
       </div>
@@ -730,32 +743,66 @@ end ${packageName};
     const endpoint = document.getElementById('battle-endpoint').value
     const m1 = document.getElementById('battle-model-1').value.trim()
     const m2 = document.getElementById('battle-model-2').value.trim()
-    const prompt = document.getElementById('battle-prompt').value.trim()
+    const rawPrompt = document.getElementById('battle-prompt').value.trim()
     const out1 = document.getElementById('battle-out-1')
     const out2 = document.getElementById('battle-out-2')
+    const reason1 = document.getElementById('battle-reason-1')
+    const reason2 = document.getElementById('battle-reason-2')
     const tps1El = document.getElementById('battle-tps-1')
     const tps2El = document.getElementById('battle-tps-2')
     const verdict = document.getElementById('battle-verdict')
     const status = document.getElementById('battle-status')
-    if (!prompt) return
+    if (!rawPrompt) return
     out1.textContent = ''; out2.textContent = ''
+    if (reason1) reason1.textContent = ''
+    if (reason2) reason2.textContent = ''
     verdict.style.display = 'none'
     status.textContent = 'fighting'; status.dataset.state = 'online'
     document.getElementById('battle-name-1').textContent = m1
     document.getElementById('battle-name-2').textContent = m2
+
+    // Prepend reasoning instruction
+    const prompt = `Think step by step before answering. Show your reasoning briefly, then give your final answer.\n\n${rawPrompt}`
+
     const start = Date.now()
     let t1 = 0, t2 = 0
     if (window.WormChain) await window.WormChain.appendEvent('BATTLE_START', { m1, m2, promptHash: await window.WormChain.sha256(prompt) })
     battleAbort1 = new AbortController()
     battleAbort2 = new AbortController()
+
+    // Split <think>...</think> or reasoning: prefix from final answer
+    function routeToken(tok, reasonEl, outputEl, counter, elapsed) {
+      counter.total = (counter.total || 0) + 1
+      const fullSoFar = (counter.buf || '') + tok
+      counter.buf = fullSoFar
+      // Detect <think> block
+      if (fullSoFar.includes('<think>') || counter.inThink) {
+        counter.inThink = true
+        if (reasonEl) terminalWrite(reasonEl, tok)
+        if (fullSoFar.includes('</think>')) { counter.inThink = false; counter.buf = '' }
+      } else {
+        terminalWrite(outputEl, tok)
+      }
+    }
+
+    const c1 = {}, c2 = {}
     await Promise.allSettled([
       streamOllama({ endpoint, model: m1, prompt, signal: battleAbort1.signal,
-        onToken: tok => { t1++; terminalWrite(out1, tok); tps1El.textContent = `${(t1 / ((Date.now()-start)/1000)).toFixed(1)} t/s` }
+        onToken: tok => {
+          t1++
+          routeToken(tok, reason1, out1, c1)
+          tps1El.textContent = `${(t1 / ((Date.now()-start)/1000)).toFixed(1)} t/s · ${t1} tok`
+        }
       }),
       streamOllama({ endpoint, model: m2, prompt, signal: battleAbort2.signal,
-        onToken: tok => { t2++; terminalWrite(out2, tok); tps2El.textContent = `${(t2 / ((Date.now()-start)/1000)).toFixed(1)} t/s` }
+        onToken: tok => {
+          t2++
+          routeToken(tok, reason2, out2, c2)
+          tps2El.textContent = `${(t2 / ((Date.now()-start)/1000)).toFixed(1)} t/s · ${t2} tok`
+        }
       })
     ])
+
     status.textContent = 'sealed'; status.dataset.state = 'complete'
     if (window.WormChain) {
       const elapsed = (Date.now() - start) / 1000
@@ -764,7 +811,7 @@ end ${packageName};
       const event = await window.WormChain.appendEvent('BATTLE_DONE', { m1, m2, t1, t2, elapsed: elapsed.toFixed(2), winner })
       triggerSealBurst()
       verdict.style.display = 'grid'
-      document.getElementById('verdict-text').textContent = `${winner} wins · ${Math.max(r1tps, r2tps).toFixed(1)} t/s peak`
+      document.getElementById('verdict-text').textContent = `${winner} wins · ${Math.max(r1tps,r2tps).toFixed(1)} t/s · ${Math.max(t1,t2)} tokens`
       document.getElementById('verdict-seal').textContent = event.seal
     }
   }
@@ -992,5 +1039,336 @@ end ${id}_Agent;
       const xp = document.getElementById('xp-fill')
       if (xp) xp.style.width = AGENT_CLASSES[chosenClass]?.stats.trust + '%'
     }, 120)
+  }
+
+  // ── TWIN BUILDER ─────────────────────────────────────────────
+
+  function initTwinBuilder() {
+    const saved = localStorage.getItem('llm-twin-arena-my-twin')
+    if (saved) {
+      try {
+        twinConfig = { ...twinConfig, ...JSON.parse(saved) }
+        buildTwinChatSection()
+        return
+      } catch {}
+    }
+    showWizard()
+  }
+
+  function showWizard() {
+    if (document.getElementById('twin-wizard')) return
+    const overlay = document.createElement('div')
+    overlay.id = 'twin-wizard'
+    overlay.className = 'twin-wizard-overlay'
+    overlay.innerHTML = `
+      <div class="twin-wizard-card">
+        <div class="wizard-progress" id="wizard-progress">
+          <div class="wizard-dot active" data-dot="0"></div>
+          <div class="wizard-dot" data-dot="1"></div>
+          <div class="wizard-dot" data-dot="2"></div>
+        </div>
+        <div class="wizard-stage" id="wizard-stage"></div>
+        <div class="wizard-nav">
+          <button class="button mini-button" id="wizard-skip" style="opacity:0.55">Skip</button>
+          <button class="button mini-button" id="wizard-back" style="display:none">← Back</button>
+          <button class="button" id="wizard-next">Continue →</button>
+        </div>
+      </div>
+    `
+    document.body.appendChild(overlay)
+    overlay.querySelector('#wizard-skip').addEventListener('click', dismissWizard)
+    overlay.querySelector('#wizard-back').addEventListener('click', () => goWizardStep(wizardCurrentStep - 1))
+    overlay.querySelector('#wizard-next').addEventListener('click', advanceWizard)
+    wizardCurrentStep = 0
+    renderWizardStep(0)
+  }
+
+  function renderWizardStep(n) {
+    const stage = document.getElementById('wizard-stage')
+    const nextBtn = document.getElementById('wizard-next')
+    const backBtn = document.getElementById('wizard-back')
+    if (!stage) return
+    document.querySelectorAll('.wizard-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === n)
+      d.classList.toggle('done', i < n)
+    })
+    if (backBtn) backBtn.style.display = n > 0 ? '' : 'none'
+
+    if (n === 0) {
+      nextBtn.textContent = 'Continue →'
+      stage.innerHTML = `
+        <h2 class="wizard-title">Build Your Digital Twin</h2>
+        <p class="wizard-sub">Upload a photo. Pick a model. Your avatar speaks every response back to you in real time.</p>
+        <div class="avatar-upload-zone" id="avatar-zone">
+          <div class="avatar-circle" id="avatar-circle">
+            ${twinConfig.avatarDataUrl ? `<img src="${twinConfig.avatarDataUrl}" alt="avatar">` : '<span class="avatar-plus">+</span>'}
+          </div>
+          <p class="avatar-upload-hint">Click to upload your photo · or drag and drop</p>
+          <input type="file" accept="image/*" id="avatar-file" style="display:none">
+        </div>
+      `
+      const zone = stage.querySelector('#avatar-zone')
+      const fileInput = stage.querySelector('#avatar-file')
+      zone.addEventListener('click', () => fileInput.click())
+      fileInput.addEventListener('change', e => { const f = e.target.files?.[0]; if (f) loadAvatarFile(f) })
+      zone.addEventListener('dragover', e => { e.preventDefault(); document.getElementById('avatar-circle')?.classList.add('drag-over') })
+      zone.addEventListener('dragleave', () => document.getElementById('avatar-circle')?.classList.remove('drag-over'))
+      zone.addEventListener('drop', e => {
+        e.preventDefault()
+        document.getElementById('avatar-circle')?.classList.remove('drag-over')
+        const f = e.dataTransfer?.files?.[0]
+        if (f) loadAvatarFile(f)
+      })
+
+    } else if (n === 1) {
+      nextBtn.textContent = 'Launch My Twin →'
+      const models = [
+        { tag: 'nemotron', name: 'Nemotron', sub: '4B · NVIDIA' },
+        { tag: 'mistral:7b', name: 'Mistral', sub: '7B · Fast' },
+        { tag: 'llama3.2:3b', name: 'Llama', sub: '3B · Context' },
+        { tag: 'phi3:mini', name: 'Phi-3', sub: '3.8B · Compact' },
+      ]
+      stage.innerHTML = `
+        <h2 class="wizard-title">Name & Power Your Twin</h2>
+        <label>Your twin's name
+          <input id="wizard-name" value="${twinConfig.name || ''}" placeholder="Ahmad" spellcheck="false">
+        </label>
+        <div>
+          <p class="eyebrow" style="margin-bottom:10px">Choose the model</p>
+          <div class="wizard-model-grid">
+            ${models.map(m => `
+              <div class="wizard-model-card${twinConfig.modelTag === m.tag ? ' chosen' : ''}" data-tag="${m.tag}" data-name="${m.name}">
+                <span class="model-tag">${m.name}</span>
+                <span class="model-sub">${m.sub}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <label>Personality <span style="color:var(--muted);font-size:0.72rem">(optional)</span>
+          <textarea id="wizard-personality" spellcheck="false" style="min-height:72px" placeholder="Describe how your twin thinks and talks...">${twinConfig.personality || ''}</textarea>
+        </label>
+      `
+      stage.querySelectorAll('.wizard-model-card').forEach(card => {
+        card.addEventListener('click', () => {
+          stage.querySelectorAll('.wizard-model-card').forEach(c => c.classList.remove('chosen'))
+          card.classList.add('chosen')
+          twinConfig.modelTag = card.dataset.tag
+          twinConfig.modelName = card.dataset.name
+        })
+      })
+
+    } else if (n === 2) {
+      nextBtn.textContent = '⚡ Start Talking'
+      const avatarHtml = twinConfig.avatarDataUrl
+        ? `<img src="${twinConfig.avatarDataUrl}" alt="avatar" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--green)">`
+        : `<div style="width:100px;height:100px;border-radius:50%;border:3px solid var(--green);background:var(--panel-2);display:flex;align-items:center;justify-content:center;font-size:2.5rem">🤖</div>`
+      stage.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:10px 0">
+          ${avatarHtml}
+          <h2 class="wizard-title">${twinConfig.name || 'Your Twin'} is ready</h2>
+          <p class="wizard-sub">Powered by <strong style="color:var(--green)">${twinConfig.modelName}</strong></p>
+          <p class="wizard-sub" style="font-size:0.82rem">Your avatar will speak every response back to you using your browser's voice engine — no cloud, no API key.</p>
+        </div>
+      `
+    }
+  }
+
+  function loadAvatarFile(file) {
+    const reader = new FileReader()
+    reader.onload = ev => {
+      twinConfig.avatarDataUrl = ev.target.result
+      const circle = document.getElementById('avatar-circle')
+      if (circle) circle.innerHTML = `<img src="${twinConfig.avatarDataUrl}" alt="avatar">`
+      // Also update existing chat avatar if open
+      const chatImg = document.getElementById('chat-avatar-img')
+      if (chatImg && chatImg.tagName === 'IMG') chatImg.src = twinConfig.avatarDataUrl
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function advanceWizard() {
+    if (wizardCurrentStep === 1) {
+      const nameEl = document.getElementById('wizard-name')
+      const persEl = document.getElementById('wizard-personality')
+      if (nameEl) twinConfig.name = nameEl.value.trim() || 'Twin'
+      if (persEl) twinConfig.personality = persEl.value.trim()
+    }
+    if (wizardCurrentStep >= 2) { completeTwinSetup(); return }
+    goWizardStep(wizardCurrentStep + 1)
+  }
+
+  function goWizardStep(n) {
+    wizardCurrentStep = n
+    renderWizardStep(n)
+  }
+
+  function dismissWizard() {
+    document.getElementById('twin-wizard')?.remove()
+  }
+
+  function completeTwinSetup() {
+    localStorage.setItem('llm-twin-arena-my-twin', JSON.stringify(twinConfig))
+    dismissWizard()
+    buildTwinChatSection()
+  }
+
+  // ── TWIN CHAT ─────────────────────────────────────────────────
+
+  function buildTwinChatSection() {
+    if (document.getElementById('twin-chat-section')) return
+    const section = document.createElement('section')
+    section.id = 'twin-chat-section'
+    section.className = 'twin-chat-section'
+    const avatarHtml = twinConfig.avatarDataUrl
+      ? `<img src="${twinConfig.avatarDataUrl}" alt="${twinConfig.name}" class="chat-avatar-img" id="chat-avatar-img">`
+      : `<div class="chat-avatar-no-img" id="chat-avatar-img">🤖</div>`
+    section.innerHTML = `
+      <div class="twin-chat-header">
+        <div>
+          <p class="eyebrow">Your Digital Twin</p>
+          <h2 style="color:var(--green);margin:0">${twinConfig.name || 'Twin'}</h2>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="runtime-pill" id="twin-ollama-status">checking</span>
+          <button class="button mini-button" id="tts-btn">🔊 Voice</button>
+          <button class="button mini-button" id="simple-mode-btn">👁 Simple</button>
+          <button class="button mini-button" id="twin-reset-btn" style="opacity:0.6">Reset</button>
+        </div>
+      </div>
+      <div class="twin-chat-layout">
+        <div class="twin-avatar-panel">
+          <div class="chat-avatar-wrapper">${avatarHtml}</div>
+          <p class="twin-name-tag">${twinConfig.name || 'TWIN'}</p>
+          <p class="twin-model-tag">${twinConfig.modelName || twinConfig.modelTag}</p>
+          <div class="wave-bars" id="wave-bars">
+            ${'<div class="wave-bar"></div>'.repeat(7)}
+          </div>
+        </div>
+        <div class="twin-messages-panel">
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-input-row">
+            <input id="chat-input" placeholder="Talk to your twin..." spellcheck="false" autocomplete="off">
+            <button class="button" id="chat-send">Send</button>
+          </div>
+        </div>
+      </div>
+    `
+    const topline = document.querySelector('.topline')
+    if (topline) topline.insertAdjacentElement('afterend', section)
+    else document.querySelector('.shell')?.insertBefore(section, document.querySelector('.shell')?.firstChild)
+
+    section.querySelector('#chat-send').addEventListener('click', sendTwinMessage)
+    section.querySelector('#chat-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendTwinMessage() }
+    })
+    section.querySelector('#tts-btn').addEventListener('click', () => {
+      ttsEnabled = !ttsEnabled
+      const btn = section.querySelector('#tts-btn')
+      btn.textContent = ttsEnabled ? '🔊 Voice' : '🔇 Voice'
+      btn.style.opacity = ttsEnabled ? '1' : '0.5'
+      if (!ttsEnabled) { window.speechSynthesis?.cancel(); setAvatarSpeaking(false) }
+    })
+    section.querySelector('#simple-mode-btn').addEventListener('click', () => {
+      document.body.classList.toggle('simple-mode')
+      section.querySelector('#simple-mode-btn').textContent = document.body.classList.contains('simple-mode') ? '⚙ Full' : '👁 Simple'
+    })
+    section.querySelector('#twin-reset-btn').addEventListener('click', () => {
+      if (!confirm('Reset your twin and start the wizard again?')) return
+      localStorage.removeItem('llm-twin-arena-my-twin')
+      section.remove()
+      twinConfig = { name: '', modelTag: 'nemotron', modelName: 'Nemotron-Mini-4B', avatarDataUrl: null, personality: '', endpoint: 'http://127.0.0.1:11434' }
+      wizardCurrentStep = 0
+      showWizard()
+    })
+
+    checkTwinOllama()
+    addBubble(`Hi — I'm ${twinConfig.name || 'your twin'}, running on ${twinConfig.modelName}. Talk to me.`, 'twin')
+  }
+
+  async function checkTwinOllama() {
+    const pill = document.getElementById('twin-ollama-status')
+    if (!pill) return
+    try {
+      const r = await fetch(`${twinConfig.endpoint}/api/tags`)
+      if (!r.ok) throw new Error()
+      pill.textContent = 'online'; pill.dataset.state = 'online'
+    } catch {
+      pill.textContent = 'offline'; pill.dataset.state = ''
+    }
+  }
+
+  async function sendTwinMessage() {
+    const input = document.getElementById('chat-input')
+    const sendBtn = document.getElementById('chat-send')
+    const userMsg = input?.value.trim()
+    if (!userMsg) return
+    input.value = ''
+    sendBtn.disabled = true
+    addBubble(userMsg, 'user')
+
+    const sys = twinConfig.personality
+      ? `You are ${twinConfig.name}, a digital twin. ${twinConfig.personality}. Respond naturally in character.`
+      : `You are ${twinConfig.name}, a digital twin. Respond as ${twinConfig.name} would — same voice, same perspective. Be conversational and direct.`
+
+    const fullPrompt = `${sys}\n\nUser: ${userMsg}\n${twinConfig.name}:`
+    const twinBubble = addBubble('', 'twin')
+    let fullResponse = ''
+
+    try {
+      await streamOllama({
+        endpoint: twinConfig.endpoint,
+        model: twinConfig.modelTag,
+        prompt: fullPrompt,
+        signal: undefined,
+        onToken: tok => {
+          fullResponse += tok
+          twinBubble.textContent = fullResponse
+          const msgs = document.getElementById('chat-messages')
+          if (msgs) msgs.scrollTop = msgs.scrollHeight
+        }
+      })
+      if (window.WormChain) {
+        await window.WormChain.appendEvent('TWIN_CHAT', {
+          twin: twinConfig.name, model: twinConfig.modelTag,
+          userHash: await window.WormChain.sha256(userMsg),
+          responseHash: await window.WormChain.sha256(fullResponse)
+        })
+      }
+      if (ttsEnabled) speakText(fullResponse)
+    } catch (err) {
+      twinBubble.textContent = `[Error: ${err.message}]`
+    }
+    sendBtn.disabled = false
+  }
+
+  function addBubble(text, who) {
+    const msgs = document.getElementById('chat-messages')
+    if (!msgs) return null
+    const bubble = document.createElement('div')
+    bubble.className = `chat-bubble ${who}`
+    bubble.textContent = text
+    msgs.appendChild(bubble)
+    msgs.scrollTop = msgs.scrollHeight
+    return bubble
+  }
+
+  function speakText(text) {
+    if (!window.speechSynthesis || !ttsEnabled) return
+    window.speechSynthesis.cancel()
+    const clean = text.replace(/```[\s\S]*?```/g, '...code...').replace(/[#*`>]/g, '').slice(0, 900)
+    const utt = new SpeechSynthesisUtterance(clean)
+    utt.rate = 0.93
+    utt.pitch = 1.0
+    utt.onstart  = () => setAvatarSpeaking(true)
+    utt.onend    = () => setAvatarSpeaking(false)
+    utt.onerror  = () => setAvatarSpeaking(false)
+    window.speechSynthesis.speak(utt)
+  }
+
+  function setAvatarSpeaking(on) {
+    const img   = document.getElementById('chat-avatar-img')
+    const waves = document.getElementById('wave-bars')
+    if (img)   img.classList.toggle('speaking', on)
+    if (waves) waves.classList.toggle('active', on)
   }
 })()
